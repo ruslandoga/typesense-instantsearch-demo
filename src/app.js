@@ -4,7 +4,7 @@ import TypesenseInstantSearchAdapter from "typesense-instantsearch-adapter";
 
 const typesenseInstantsearchAdapter = new TypesenseInstantSearchAdapter({
   server: {
-    apiKey: "xyz", // Be sure to use an API key that only allows searches, in production
+    apiKey: "hexdocs", // Be sure to use an API key that only allows searches, in production
     nodes: [
       {
         host: "localhost",
@@ -18,14 +18,16 @@ const typesenseInstantsearchAdapter = new TypesenseInstantSearchAdapter({
   //  queryBy is required.
   //  filterBy is managed and overridden by InstantSearch.js. To set it, you want to use one of the filter widgets like refinementList or use the `configure` widget.
   additionalSearchParameters: {
-    queryBy: "title,authors",
+    queryBy: "title,doc",
+    filterBy: "package: [elixir,phoenix,ecto,plug]",
+    sortBy: "_text_match(buckets: 10):desc,recent_downloads:desc",
   },
 });
 const { searchClient } = typesenseInstantsearchAdapter;
 
 const search = instantsearch({
   searchClient,
-  indexName: "books",
+  indexName: "hexdocs-full-text",
 });
 
 search.addWidgets([
@@ -41,15 +43,12 @@ search.addWidgets([
       item(item) {
         return `
         <div>
-          <img src="${item.image_url}" alt="${item.name}" height="100" />
-          <div class="hit-name">
+          <div>
             ${item._highlightResult.title.value}
           </div>
-          <div class="hit-authors">
-          ${item._highlightResult.authors.map((a) => a.value).join(", ")}
+          <div>
+            ${item._highlightResult.doc.value}
           </div>
-          <div class="hit-publication-year">${item.publication_year}</div>
-          <div class="hit-rating">${item.average_rating}/5 rating</div>
         </div>
       `;
       },
